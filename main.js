@@ -13,34 +13,49 @@ import {
 class App extends React.Component {
   constructor(props) {
     super(props);
+    this.sound = null;
+    this.state = {
+      soundPosition: null,
+      soundDuration: null,
+      isPlaying: false,
+      isLoading: true,
+    };
   }
 
   playSong = async (event)=> {
-    console.log("Play Song");
-    const sound = new Audio.Sound({
-      source: require('./assets/sounds/test.mp3'),
-    });
-    await sound.loadAsync();
-    console.log(sound.isLoaded());
-    sound.play();
+    console.log(this.state.soundDuration);
+    if (this.state.isPlaying) {
+      this.sound.pause();
+    } else {
+      this.sound.play();
+    }
   }
 
-  async getLoadedSound() {
-    if (this.sound == null) {
-      await Asset.fromModule('./assets/sounds/test.mp3').downloadAsync();
+  loadSound = async ()=> {
+    if (this.sound === null) {
+      this.sound = await new Audio.Sound({
+        source: require('./assets/sounds/aids.mp3'),
+      });
+      await this.sound.loadAsync();
+      this.sound.setStatusChangeCallback(this.updateSoundStatus);
+      this.setState({ soundDuration: this.sound.getDurationMillis() });
     }
-    return await this.sound.loadAsync();
+  }
+
+  updateSoundStatus = (status)=> {
+     this.setState({ soundPosition: status.position_millis, isPlaying: status.is_playing });
   }
 
   componentDidMount() {
     Audio.setIsEnabled(true);
+    this.loadSound();
   }
 
   render() {
     return (
       <View style={styles.container}>
-        <Text>Open up main.js to start working on your app!</Text>
-        <Button title={'Play Me'} onPress={this.playSong} />
+        <Text>Click below to get AIDS!</Text>
+        <Button title={'Get AIDS!'} onPress={this.playSong} />
       </View>
     );
   }
